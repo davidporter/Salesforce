@@ -52,4 +52,6 @@ System.assert(s2.contains(1));
 // Similar to a Dictionary in C#
 Map<String, String> country_currencies = new Map<String, String>();
 Map<ID, Set<String>> m = new Map<ID, Set<String>>();
+// populating maps at definition
+Map<String, String> MyStrings = new Map<String, String>{'a' => 'b', 'c' => 'd'.toUpperCase()};
 
