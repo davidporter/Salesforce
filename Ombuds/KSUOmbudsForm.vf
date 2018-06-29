@@ -1,0 +1,76 @@
+<apex:page sidebar="false" standardStylesheets="false" showHeader="false" docType="HTML-5.0" controller="KSUOmbudsFormController">
+
+<html class="no-js" lang="en" dir="ltr">
+  <head>
+      <meta charset="utf-8" />
+      <meta http-equiv="x-ua-compatible" content="ie=edge" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ombuds Intake Form</title>
+        <apex:stylesheet value="{!URLFOR($Resource.foundationZip,'css/foundation.min.css')}"/>
+        <apex:stylesheet value="{!$Resource.localcss}"/> 
+  </head>
+  <body>
+      
+      <div class="topbar-sticky">
+  <div class="top-bar-left">
+      <div class="logo-title"><apex:image url="{!$Resource.logo_KentState}" /> <span class="title-text"> Student Ombuds</span></div>
+  </div>
+  
+</div>
+      
+      
+    <div class="grid-container wrapper">
+      <div class="grid-x grid-padding-x">
+        <div class="large-12 cell">
+          <h1 id="page-title">Student Concern Intake Form</h1>
+            <p>
+                The primary goal of the Office of the Student Ombuds is to provide students confidential consultation in assisting with the possible resolution of any university-related concern, grievance or appeal. Please complete the form below and we will contact you to schedule an appointment, or you may call 330-672-9494.
+            </p>
+            <hr />
+        </div>
+      </div>
+
+      <div clas="grid-x grid-padding-x">
+        <div class="large-12 cell">
+            <div>
+                <form action="https://ksusf2a--KHdev.cs50.my.salesforce.com/servlet/servlet.WebToCase?encoding=UTF-8" method="POST">
+ 
+                    <input type="hidden" name="orgid" value="00D3B000000DkAC" />
+                    <input type="hidden" name="retURL" value="https://ksusf2a--khdev--c.cs50.visual.force.com/apex/KSUOmbudsFormConfirmation" />
+                    <!-- <input type="hidden"  id="recordType" name="recordType" value="00h3B000000SyaWQAS" /> -->
+                    <input type="hidden" name="subject" value="Web Case from: {!contact.FirstName} {!contact.LastName}" />
+                    
+                    <apex:pageBlock >
+                        <label for="name">Contact Name</label><input  id="name" maxlength="80" name="name" size="20" type="text" placeholder="{!contact.FirstName} {!contact.LastName}"/>
+                        <label for="email">Email</label><input  id="email" maxlength="80" name="email" size="20" type="text" placeholder="{!contact.email}"/>
+                    </apex:pageBlock>
+                    
+                    <label for="phone">Phone <em>(If you would like to be contacted by phone, please enter the best number to reach you)</em></label><input  id="phone" maxlength="40" name="phone" size="20" type="text" placeholder="000-000-0000"/>
+                                          
+                    <label for="description">Description</label><textarea name="description" placeholder="Type your description here..."></textarea>
+                    
+                  <input type="checkbox" name="permission" /><label for="permission"><strong>I give permission for the Office of the Student Ombuds to research my concern.</strong></label>
+                     
+                    <input type="hidden"  id="external" name="external" value="1" /><br /><br />
+                     
+                    <input type="submit" name="submit" />
+                     
+                    </form>
+            </div>
+            
+            <!-- NEW FORM in APEX -->
+
+        </div>
+      </div>
+
+
+    </div>
+
+    <apex:includeScript value="{!URLFOR($Resource.foundationZip,'js/vendor/jquery.js')}"/>
+        <apex:includeScript value="{!URLFOR($Resource.foundationZip,'js/vendor/what-input.js')}"/>
+        <apex:includeScript value="{!URLFOR($Resource.foundationZip,'js/vendor/foundation.min.js')}"/>
+            <apex:includeScript value="{!URLFOR($Resource.foundationZip,'js/app.js')}"/>
+      
+  </body>
+    </html>     
+</apex:page>
