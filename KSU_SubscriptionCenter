@@ -1,0 +1,777 @@
+<apex:page id="subscriptionCenter"
+showHeader="false"
+sideBar="false"
+docType="HTML-5.0"
+standardStylesheets="false"
+controller="KSU_SubscriptionCenterController">
+<title>Subscription Center - Kent State University</title>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+
+<apex:stylesheet value="{!URLFOR($Resource.KSU_CSC, 'css/subCenterCustom.min.css')}"/>
+<apex:stylesheet value="{!URLFOR($Resource.KSU_CSC, 'bootstrap/css/bootstrap.min.css')}"/>
+<apex:stylesheet value="{!URLFOR($Resource.KSU_CSC, 'css/subCenterCustom.min.css')}"/>
+<apex:stylesheet value="{!URLFOR($Resource.KSU_CSC, 'css/slider.css')}"/>
+<apex:stylesheet value="{!URLFOR($Resource.KSU_CSC, 'css/nav.css')}"/>
+<apex:stylesheet value="{!URLFOR($Resource.KSU_CSC, 'css/flashPerksBtn.css')}"/> 
+
+
+
+<style>
+  /* Required for VF Resouce var to work */
+  @font-face {
+    font-family: "League Gothic";
+    src: url("{!URLFOR($Resource.Subscription_Center, 'sub_center/fonts/leaguegothic-regular-webfont.woff')}") format('woff');
+  }
+  .btn-default, 
+  .btn-default:focus, 
+  .btn-default.active:active, 
+  .btn-default.active,        
+  .btn:focus, 
+  .btn:active,
+  .a,
+  .a:visited,
+  .a:active,
+  .a:focus,
+  .span,
+  .span:focus,
+  .span:active{
+    border:0px solid transparent !important; 
+    background:transparent !important;    
+    outline: none !important;     
+    box-shadow: none !important;                    
+  }   
+
+  span.glyphicon {
+    font-size: 1.4em;
+  }
+  
+</style>
+
+<apex:outputPanel id="mainPage">
+
+<!-- NAVIGATION -->
+<!-- DPORTER -->
+<div class="page-container" style="background-color: white; padding-top:50px; padding-bottom:20px;">
+  <div class="container">
+    <section class="primary-nav  hide-for-small">
+      <nav>
+        <a href="" class="active">
+          <apex:image url="{!$Resource.KSULogo}" width="35%" height="35%" />
+        </a>
+      </nav>
+    </section>
+  </div>
+  
+  <!-- top navbar -->
+  <apex:outputPanel rendered="{!NOT(successPage)}">
+  <apex:outputPanel rendered="{!theSubscription == null}">
+  <div class="navbar navbar-default navbar-fixed-top" role="navigation" style="background-color: white">
+   <div class="container">
+    <div class="navbar-header">
+     <button type="button" class="navbar-toggle navbar-left" data-toggle="offcanvas" data-target=".sidebar-nav" style="background-color: white">
+       <span class="icon-bar"></span>
+       <span class="icon-bar"></span>
+       <span class="icon-bar"></span>
+     </button>
+     <a class="navbar-brand" href="#">
+     </a>
+   </div>
+ </div>
+</div>
+</apex:outputPanel>
+</apex:outputPanel>
+<!-- /top navbar -->
+
+<div class="container">
+  <div class="row row-offcanvas row-offcanvas-left">
+
+    <!-- sidebar -->
+    <apex:outputPanel rendered="{!NOT(successPage)}">
+  <apex:outputPanel rendered="{!theSubscription == null}">
+    <div class="col-xs-6 col-sm-3 sidebar-offcanvas" id="sidebar" role="navigation">
+      <ul class="nav">
+        <div class="buttons">
+          <!-- <li class="active"><a class="showSingle sidebar nav buttons" onClick="setGetParameter('tabName', 'div1');">View All Subscribed</a></li> -->
+              <!--<li><a href="#">Alumni Friends</a></li>
+              <li><a href="#">Athletics</a></li>
+              <li><a href="#">CCPD</a></li>              
+              <li><a href="#">Recruiting</a></li>-->
+              <li><a onClick="setGetParameter('tabName', 'div2');">Student</a></li>
+              <!--<li><a href="#">Faculty Staff</a></li>
+              <li><a href="#">WKSU</a></li>-->
+            </div>
+          </ul>                                    
+        </div> 
+    </apex:outputPanel>  
+    </apex:outputPanel>             
+        <!-- main area -->
+        <div class="col-xs-12 col-sm-9">
+          <!-- /DPORTER -->
+          <div class="col-md-3" id="leftCol">
+            <ul class="nav nav-stacked" id="sidebar">
+
+            </ul>
+          </div>
+          <!--end NAVIGATION-->
+
+
+
+
+          <div style="padding-bottom:20px;padding-top:20px; background-color:#ffffff; width:100%;">
+            <div class="container">
+              <apex:pageMessages id="pgMessages"/>
+
+              <apex:form >                                                    
+
+              <apex:outputPanel rendered="{!NOT(successPage)}">
+              <apex:outputPanel rendered="{!theSubscription != null}">
+              <h3 class="section-title" style="font-family: NationalLight, 'Helvetica Neue', Helvetica, Arial, sans-serif;font-weight:700; font-size:16pt;">
+                Unsubscribe from the following communications:
+              </h3>
+
+              <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
+                <div class="panel panel-default">
+                  <div class="panel-heading" role="tab" id="headingOne">
+                    <h4 class="panel-title" style="font-size:16pt;">
+                    </h4>
+                  </div>
+
+                  <div id="expandCollapse1" 
+                  aria-labelledby="headingOne">
+                  <ul class="list-group">
+                    <li class="list-group-item">
+                      <div class="row">
+                        <div class="col-sm-8">
+                          <h4 style="color:#666;font-family:Arial;">{!theSubscription.Subscription_Name__c}</h4>
+                        </div>
+                        <div class="col-sm-12" style="padding-top:14px;">
+                          <apex:commandButton styleClass="btn btn-primary pull-left"
+                          value="Unsubscribe"
+                          action="{!unsubFromSingleSubscription}"
+                          reRender="mainPage"
+                          style="border-radius:2px;padding:8px 25px 8px 25px;background-color:#0099cc;"/>           
+                        </div>
+                      </div>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+            <br/>
+            <span class="pull-left" style="text-align:left;">
+              <a type="button" class="btn btn-default" href="/apex/KSU_SubscriptionCenter?contactId={!theContact.Id}&tabName=div1">
+                Manage All Communication Preferences
+              </a><br /><br />
+
+              <a href="#" data-toggle="modal" data-target="#myModal">
+                Unsubscribe from All
+              </a><br/><br/>
+            </span>
+          </apex:outputPanel>
+
+
+          <apex:outputPanel id="subscribedList" rendered="{!theSubscription == null && subscribedCommunications != null}">
+
+
+<!-- Var for creating unique collapsible heading ids -->
+<apex:variable value="{!1}" var="requiredNumber"/>
+
+<apex:repeat value="{!requiredDepartments}" var="dep">
+<apex:outputPanel >
+<div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true" style="min-width:300px; max-width:700px">
+  <div class="panel panel-default" style="min-width:300px; max-width:700px">
+
+    <div id="requiredDiv{!requiredNumber}" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingOne" style="min-width:300px; max-width:700px">                                                 
+      <apex:repeat value="{!requiredCommunications[dep]}" var="subscriber">
+
+</apex:repeat>
+</div>
+</div>
+</div>
+</apex:outputPanel>
+
+<!-- Increment the unique panel heading id -->
+<apex:variable var="requiredNumber" value="{!requiredNumber + 1}"/>
+</apex:repeat>    
+
+
+
+<!--<h2 class="section-title" style="font-family:'Verlag A','Verlag B',Arial,sans-serif ; font-size: 18pt; font-weight:700;">
+  ALL Communications
+</h2>-->
+<apex:variable value="{!1}" var="panelHeading"/>                            
+<div class="row">
+  <div class="col-md-8">
+    <div class="panel-body">
+      <div class="tab-content">
+        <div class="tab-pane fade in active" id="tab1primary">
+
+          <div id="{!panelHeading}deptPanelCollapse"
+          class="panel-collapse collapse in" role="tabpanel"
+          aria-labelledby="headingOne">
+          <!--<H1 style="color:blue;">WKSU BEGIN</H1>-->
+          <apex:variable value="{!1}" var="wksuNumber"/>
+          <apex:variable value="{!1}" var="wksuNumberInner"/>                                          
+          <apex:repeat value="{!allCommunicationCategoriesMap['WKSU']}" var="categoryName">
+          <div aria-multiselectable="true">
+            <div role="tab" >
+              <!--<h4 class="panel-title" style="font-size:20px;color:#627378;">
+                {!categoryName}
+                <button id="wksuButton{!wksuNumber}" type="button" class="btn btn-default " onclick="expandCollapse('wksuButton{!wksuNumber}', 'wksuDiv{!wksuNumber}', 'wksuSpan{!wksuNumber}');" >
+                  <span id="wksuSpan{!wksuNumber}" class="glyphicon glyphicon-collapse-down "></span> 
+                </button>      
+              </h4>                                                 -->
+
+            </div>
+
+            <div id="wksuDiv{!wksuNumber}" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingOne">   
+
+              <apex:repeat value="{!allCommunicationWrappersMap['WKSU' + categoryName]}" var="subscriber">
+
+        <apex:variable var="wksuNumberInner" value="{!wksuNumberInner + 1}"/>   
+      </apex:repeat>
+    </div>
+  </div>
+  <apex:variable var="wksuNumber" value="{!wksuNumber + 1}"/>                                    
+</apex:repeat> 
+<!--<H1 style="color:blue;">WKSU END</H1>-->
+
+</div>
+
+</div>
+
+
+<div class="tab-pane fade in active" id="tab2primary">
+
+  <div id="{!panelHeading}deptPanelCollapse"
+  class="panel-collapse collapse in" role="tabpanel"
+  aria-labelledby="headingOne">
+
+  <!--<H1 style="color:blue;">ALUMNI BEGIN </H1>-->
+  <apex:variable value="{!1}" var="alumniNumber"/>
+  <apex:variable value="{!1}" var="alumniNumberInner"/>                                         
+  <apex:repeat value="{!allCommunicationCategoriesMap['Alumni Friends']}" var="categoryName">
+
+  <div aria-multiselectable="true">
+
+    <div role="tab" >                                       
+
+    </div>
+    <div id="alumniDiv{!alumniNumber}"
+    class="panel-collapse collapse in" role="tabpanel"
+    aria-labelledby="headingOne">   
+
+    <apex:repeat value="{!allCommunicationWrappersMap['Alumni Friends' + categoryName]}" var="subscriber">
+
+<apex:variable var="alumniNumberInner" value="{!alumniNumberInner + 1}"/>                                                              
+</apex:repeat>
+</div>
+
+</div>
+<apex:variable var="alumniNumber" value="{!alumniNumber + 1}"/>                                    
+</apex:repeat> 
+
+<!--<H1 style="color:blue;">ALUMNI END</H1>-->
+</div>
+
+</div>                                 
+
+<div class="tab-pane fade in active" id="tab3primary">
+
+  <div id="{!panelHeading}deptPanelCollapse"
+  class="panel-collapse collapse in" role="tabpanel"
+  aria-labelledby="headingOne">
+  <!--<H1 style="color:blue;">FACULTY STAFF BEGIN</H1>-->
+  <apex:variable value="{!1}" var="facultyNumber"/>
+  <apex:variable value="{!1}" var="facultyNumberInner"/>                                          
+  <apex:repeat value="{!allCommunicationCategoriesMap['Faculty Staff']}" var="categoryName">
+
+  <div aria-multiselectable="true">
+
+    <div role="tab" >
+
+
+    </div>
+    <div id="facultyDiv{!facultyNumber}" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingOne">   
+      <apex:repeat value="{!allCommunicationWrappersMap['Faculty Staff' + categoryName]}" var="subscriber">
+
+<apex:variable var="facultyNumberInner" value="{!facultyNumberInner + 1}"/>                                                               
+</apex:repeat>
+</div>
+
+</div>
+<apex:variable var="facultyNumber" value="{!facultyNumber + 1}"/>                                    
+</apex:repeat> 
+<!--<H1 style="color:blue;">FACULTY STAFF END</H1>-->
+
+</div>
+  
+</div>
+
+<button type="button" class="constraint btn flash-btn" id="optout" onclick="">Opt Out of FLASHperks Program</button>
+
+<button type="button" class="constraint btn flash-btn" id="optin" onclick="">Opt In to FLASHperks Program</button>
+
+<div id="div2" style="min-width:300px; max-width:700px"> <!-- SHOW HID DIV -->
+
+  <div class="tab-pane fade in active" id="tab4primary">
+
+    <div id="{!panelHeading}deptPanelCollapse" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingOne">
+    <!--<H1 style="color:blue;">STUDENTS BEGIN</H1>-->
+    <h2 class="section-title" style="font-family:'Verlag A','Verlag B',Arial,sans-serif ; font-size: 18pt; font-weight:700; color:#87ceeb">Student</h2>
+    <apex:variable value="{!1}" var="studentNumber"/>
+    <apex:variable value="{!1}" var="studentNumberInner"/>                                     
+    <apex:repeat value="{!allCommunicationCategoriesMap['Students']}" var="categoryName">
+
+    <div aria-multiselectable="true">
+
+      <div role="tab" >
+
+        <h4 class="panel-title" style="font-size:20px;color:#627378; background-color:lightblue; height:30px; padding: 3px">
+          &nbsp; {!categoryName}
+          <button id="studentButton{!studentNumber}" type="button" class="btn btn-default " onclick="expandCollapse('studentButton{!studentNumber}', 'studentDiv{!studentNumber}', 'studentSpan{!studentNumber}');" style="float:right;">
+            <span id="studentSpan{!studentNumber}" class="glyphicon glyphicon-chevron-down"></span> 
+          </button>      
+        </h4>                                                 
+      </div>
+      <div id="studentDiv{!studentNumber}"
+      class="panel-collapse collapse in" role="tabpanel"
+      aria-labelledby="headingOne">   
+      <apex:repeat value="{!allCommunicationWrappersMap['Students' + categoryName]}" var="subscriber">
+      <li class="list-group-item">
+        <div class="row" style="min-width:300px; max-width:700px">
+          <div class="col-xs-5">
+
+            <h4 style="font-size:14px; font-weight:600;">{!subscriber.description}</h4>
+
+            <apex:outputPanel rendered="{!subscriber.details != null}">
+            <p class="subscriber-details" style="font-size:12px; font-style:italic;">{!subscriber.details}</p>
+          </apex:outputPanel>                                                             
+        </div>                                                               
+        <div class="col-xs-2 cmRadios" style="padding-top:5px; min-width:150px; padding:3px">
+
+
+
+ <!-- <script type="text/javascript">alert('{!subscriber.description}' == 'FLASHperks Program' && '{!subscriber.subscriberStatus}'=='Subscribed');</script> -->
+        <div style="float: right"> {!IF(subscriber.subscriberStatus == 'No Preference', 'No
+                              Preference ', IF(subscriber.subscriberStatus == 'Unsubscribed','No','Yes'))}</div>
+
+
+
+<!-- <script>alert('{!subscriber.description}' == 'FLASHperks Program' && '{!subscriber.subscriberStatus}'=='Subscribed');</script>
+ -->     
+        <label class="switch" style="float: left"> 
+         <input type="checkbox"
+         id="studentCheckbox{!studentNumberInner}"                                                                        
+         class="switch"
+         checked="{!IF(subscriber.subscriberStatus == 'Unsubscribed',false,true)}"                                                                             
+         onclick="updateSubscriptions('{!$CurrentPage.parameters.ContactId}', '{!subscriber.subscription.Id}',checked,'{!subscriber.subscriber.Id}', 'div2');"
+
+                                                                            
+         />        
+
+         <div class="slider round">
+</div>
+
+         <apex:inputText styleClass="hiddencmw" value="{!subscriber.subscriberStatus}" style="visibility:hidden;"/>
+
+       </label> 
+       <script>  
+
+       var us = "updateFLASHperksSubscriptions('{!$CurrentPage.parameters.ContactId}', '{!subscriber.subscription.Id}','{!IF(subscriber.subscriberStatus == 'Unsubscribed',true,false)}','{!subscriber.subscriber.Id}', 'div2')"
+       $("#optin").attr("onclick", us);
+       
+       $("#optout").attr("onclick", us);
+
+       if ('{!subscriber.description}' == 'FLASHperks Program' && '{!subscriber.subscriberStatus}'=='Subscribed') {
+           $("#optin").addClass('hidden');
+       } 
+       else if ('{!subscriber.description}' == 'FLASHperks Program' && '{!subscriber.subscriberStatus}'=='Unsubscribed') {
+           $("#optout").addClass('hidden');
+       }
+
+        if ('{!subscriber.subscriberStatus}' == 'Unsubscribed')
+        {
+          document.getElementById('studentCheckbox{!studentNumberInner}').checked = false;
+        }
+        else
+        {                                                                           
+          document.getElementById('studentCheckbox{!studentNumberInner}').checked = true;
+        }
+        if ('{!subscriber.description}' == 'FLASHperks Program')
+        {
+          document.getElementById('studentCheckbox{!studentNumberInner}').setAttribute("onclick",us);
+        } 
+
+
+      </script>                                                                               
+
+      <apex:inputText styleClass="hiddencmw" value="{!subscriber.subscriberStatus}" style="visibility:hidden;"/>
+
+    </div>
+
+  </div>
+</li>
+<apex:variable var="studentNumberInner" value="{!studentNumberInner + 1}"/>                                                               
+</apex:repeat>
+</div>
+
+</div>
+<apex:variable var="studentNumber" value="{!studentNumber + 1}"/>                                    
+</apex:repeat> 
+</div> <!-- SHOW HIDE DIV2 -->
+<!--<H1 style="color:blue;">STUDENTS END</H1>-->
+</div>
+
+</div>
+
+
+
+<div class="tab-pane fade in active" id="tab5primary">
+
+  <div id="{!panelHeading}deptPanelCollapse"
+  class="panel-collapse collapse in" role="tabpanel"
+  aria-labelledby="headingOne">
+  <!--<H1 style="color:blue;">ATHLETICS BEGIN</H1>-->
+  <apex:variable value="{!1}" var="athleteNumber"/>
+  <apex:variable value="{!1}" var="athleteNumberInner"/>                                          
+  <apex:repeat value="{!allCommunicationCategoriesMap['Athletics']}" var="categoryName">
+
+  <div aria-multiselectable="true">
+
+    <div role="tab" >
+
+    </div>
+    <div id="athleteDiv{!athleteNumber}"
+    class="panel-collapse collapse in" role="tabpanel"
+    aria-labelledby="headingOne">   
+    <apex:repeat value="{!allCommunicationWrappersMap['Athletics' + categoryName]}" var="subscriber">
+
+<apex:variable var="athleteNumberInner" value="{!athleteNumberInner + 1}"/>                                                                 
+</apex:repeat>
+</div>
+
+</div>
+<apex:variable var="athleteNumber" value="{!athleteNumber + 1}"/>                                    
+</apex:repeat> 
+
+<!--<H1 style="color:blue;">ATHLETICS END</H1>-->
+</div>
+
+</div>
+<div class="tab-pane fade in active" id="tab6primary">
+
+  <div id="{!panelHeading}deptPanelCollapse"
+  class="panel-collapse collapse in" role="tabpanel"
+  aria-labelledby="headingOne">
+  <!--<H1 style="color:blue;">CCPD BEGIN</H1>-->
+  <apex:variable value="{!1}" var="ccpdNumber"/>
+  <apex:variable value="{!1}" var="ccpdNumberInner"/>                                          
+  <apex:repeat value="{!allCommunicationCategoriesMap['CCPD']}" var="categoryName">
+
+  <div aria-multiselectable="true">
+
+    <div role="tab" >
+
+
+    </div>
+    <div id="ccpdDiv{!ccpdNumber}"
+    class="panel-collapse collapse in" role="tabpanel"
+    aria-labelledby="headingOne">   
+    <apex:repeat value="{!allCommunicationWrappersMap['CCPD' + categoryName]}" var="subscriber">
+
+<apex:variable var="ccpdNumberInner" value="{!ccpdNumberInner + 1}"/>                                                              
+</apex:repeat>
+</div>
+
+</div>
+<apex:variable var="ccpdNumber" value="{!ccpdNumber + 1}"/>                                    
+</apex:repeat> 
+<!--<H1 style="color:blue;">CCPD END</H1>-->
+
+</div>
+
+</div>
+
+<div class="tab-pane fade in active" id="tab7primary">
+
+  <div id="{!panelHeading}deptPanelCollapse"
+  class="panel-collapse collapse in" role="tabpanel"
+  aria-labelledby="headingOne">
+  <!--<H1 style="color:blue;">RECRUITING BEGIN</H1>-->
+  <apex:variable value="{!1}" var="recruitingNumber"/>
+  <apex:variable value="{!1}" var="recruitingNumberInner"/>                                          
+  <apex:repeat value="{!allCommunicationCategoriesMap['Recruiting']}" var="categoryName">
+
+  <div aria-multiselectable="true">
+
+    <div role="tab" >
+
+    </div>
+    <div id="recruitingDiv{!recruitingNumber}"
+    class="panel-collapse collapse in" role="tabpanel"
+    aria-labelledby="headingOne">   
+    <apex:repeat value="{!allCommunicationWrappersMap['Recruiting' + categoryName]}" var="subscriber">
+
+</apex:repeat>
+</div>
+
+</div>
+<apex:variable var="recruitingNumberInner" value="{!recruitingNumberInner + 1}"/>                                  
+</apex:repeat> 
+<!--<H1 style="color:blue;">RECRUITING END</H1>-->
+
+</div>
+
+</div>
+
+</div>
+</div>
+</div>
+<!--      </div> -->    
+</div>                     
+
+
+
+
+<div class="col-md-6 pull-left">                        
+  <a type="button" class="btn btn-default pull-left" data-toggle="modal" data-target="#myModal" style="margin-top:15px;">
+    Unsubscribe from All
+  </a>
+</div>                        
+
+</apex:outputPanel>
+</apex:outputPanel>
+
+<apex:outputPanel rendered="{!successPage}">
+{!successString}
+</apex:outputPanel>
+
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+          aria-hidden="true">&times;</span></button>
+          <h4 class="modal-title" id="myModalLabel">Unsubscribe from All KSU Communications?</h4>
+          </div>
+
+          <div class="modal-body">
+
+            <!-- SUBSCRIBED LIST START-->
+
+            <apex:outputPanel id="subscribedListModal"
+            rendered="true">
+            <!-- 
+             <apex:outputPanel id="subscribedListModal"
+            rendered="{!theSubscription == null && subscribedCommunications != null}"> -->
+            <i>We’re sorry to see you go! </i>
+            <h2 class="section-title" style="font-family:'Verlag A','Verlag B',Arial,sans-serif ; font-size: 18pt; font-weight:700;">
+              Subscribed Communications
+            </h2>
+            <!-- Var for creating unique collapsible heading ids -->
+            <apex:variable value="{!1}" var="subscribedNumber"/>
+            <apex:repeat value="{!subscribedForContact}" var="subscriber">
+            <apex:outputPanel >
+              <div>
+                  <li>
+                    {!subscriber.Marketing_Cloud_Subscription_Name__c}
+                  </li>                                                   
+              </div>
+  </apex:outputPanel>
+  <!-- Increment the unique panel heading id -->
+  <apex:variable var="subscribedNumber" value="{!subscribedNumber + 1}"/>
+</apex:repeat>
+</apex:outputPanel>
+<!-- SUBSCRIBED LIST END -->
+
+<br />
+<p>Are you sure you want to unsubscribe?</p>
+</div>
+
+<div class="modal-footer">
+  <button type="button" class="btn btn-default" data-dismiss="modal">No, Keep me Subscribed</button>
+  <apex:commandLink value="Yes, Unsubscribe me"
+  styleClass="btn btn-primary" 
+  action="{!unsubFromAllComms}"
+  reRender="mainPage" html-data-dismiss="modal"/>
+</div>
+</div>
+</div>
+</div>
+<apex:actionFunction action="{!updateSubscriptions}" name="updateSubscriptions" />                    
+</apex:form>
+</div>
+</div>
+
+
+
+<!-- DPORTER Closing off navigation requirements -->  
+</div><!-- /.col-xs-12 main -->
+</div><!--/.row-->
+</div><!--/.container-->
+</div><!--/.page-container-->
+<!-- /DPORTER2 -->
+
+
+
+
+</apex:outputPanel>     
+
+<apex:includeScript value="{!URLFOR($Resource.Subscription_Center, 'sub_center/js/jquery.min.js')}"/>
+<apex:includeScript value="{!URLFOR($Resource.Subscription_Center, 'sub_center/js/multi-switch.js')}"/>
+<apex:includeScript value="{!URLFOR($Resource.bootstrap_337, '/bootstrap_337/js/bootstrap.min.js')}"/>
+
+<script>
+
+  $j = jQuery.noConflict();
+
+  $j(document).ready(function () {
+    var lastItem = 3;
+      $j('#div2').hide();
+      $j('#div1').hide();
+      
+    $j("#feedtab").children().eq({!tabIndex}).find('a').tab('show');
+    $j('.multi-switch').multiSwitch({ width: '65px' });
+    $j('[data-toggle=offcanvas]').click(function() {
+     $j('.row-offcanvas').toggleClass('active');
+    // $j('.slider').click(function() 
+    // {
+    });  
+      
+    tabName = getUrlParameter('tabName');           
+    $j('#'+tabName).show();    
+      
+  });
+
+
+
+
+  // NAVIGATION
+  var $body   = $j(document.body);
+  var navHeight = $j('.navbar').outerHeight(true) + 10;
+  $j('#sidebar').affix({
+    offset: {
+      top: 245,
+      bottom: navHeight
+    }
+  });
+  $body.scrollspy({
+    target: '#leftCol',
+    offset: navHeight
+  });
+  // end NAVIGATION
+
+
+    
+function setGetParameter(paramName, paramValue)
+{               
+    var url = window.location.href;
+    var hash = location.hash;
+    url = url.replace(hash, '');
+    if (url.indexOf(paramName + "=") >= 0)
+    {
+        var prefix = url.substring(0, url.indexOf(paramName));
+        var suffix = url.substring(url.indexOf(paramName));
+        suffix = suffix.substring(suffix.indexOf("=") + 1);
+        suffix = (suffix.indexOf("&") >= 0) ? suffix.substring(suffix.indexOf("&")) : "";
+        url = prefix + paramName + "=" + paramValue + suffix;
+    }
+    else
+    {
+    if (url.indexOf("?") < 0)
+        url += "?" + paramName + "=" + paramValue;
+    else
+        url += "&" + paramName + "=" + paramValue;
+    }
+    window.location.href = url + hash;
+    window.location.reload(); // 12/13/17
+}    
+    
+  function getUrlParameter(sParam) {
+    var sPageURL = decodeURIComponent(window.location.search.substring(1)),
+        sURLVariables = sPageURL.split('&'),
+        sParameterName,
+        i;
+
+    for (i = 0; i < sURLVariables.length; i++) {
+        sParameterName = sURLVariables[i].split('=');
+
+        if (sParameterName[0] === sParam) {
+            return sParameterName[1] === undefined ? true : sParameterName[1];
+        }
+    }
+};    
+    
+       // Javascript Remoting in Salesforce 
+       function updateSubscriptions(contactId, subscriptionId, checked, subscriberId, divName)
+       {
+
+          Visualforce.remoting.Manager.invokeAction(
+            '{!$RemoteAction.KSU_SubscriptionCenterController.updateSubscriptionsGlobal}',
+            contactId,subscriptionId,checked,subscriberId,divName,
+            function(result, event){
+              if (event.status) {
+
+                  //   window.location.reload();
+                  setGetParameter('tabName', result);                  
+
+                  } else if (event.type === 'exception') {
+                    document.getElementById("responseErrors").innerHTML = 
+                    event.message + "<br/>\n<pre>" + event.where + "</pre>";
+                  } else {
+                    document.getElementById("responseErrors").innerHTML = event.message;
+                  }
+                }, 
+                {escape: true}
+                );
+
+        }      
+
+
+       function updateFLASHperksSubscriptions(contactId, subscriptionId, checked, subscriberId, divName)
+       {
+          Visualforce.remoting.Manager.invokeAction(
+            '{!$RemoteAction.KSU_SubscriptionCenterController.updateFLASHperksSubscriptionsGlobal}',
+            contactId,subscriptionId,checked,subscriberId,divName,
+            function(result, event){
+              if (event.status) {
+
+                  setGetParameter('tabName', result);                  
+
+                  } else if (event.type === 'exception') {
+                    document.getElementById("responseErrors").innerHTML = 
+                    event.message + "<br/>\n<pre>" + event.where + "</pre>";
+                  } else {
+                    document.getElementById("responseErrors").innerHTML = event.message;
+                  }
+                }, 
+                {escape: true}
+                );
+
+        }  
+        
+        function expandCollapse(buttonID, divID, spanID)
+        {
+          console.log('Div ' + divID + ' Button ' + buttonID);
+          console.log('Button is ' + $j('#'+buttonID));
+          console.log('Button html before is ' + $j('#'+buttonID).html());                
+
+          if ( $j('#'+spanID).hasClass('glyphicon-chevron-down') )
+          {
+            console.log('Down to up');
+            $j('#'+buttonID).html('<span id='+spanID+' class="glyphicon glyphicon-chevron-up "></span>'); 
+            console.log(divID);
+            $j('#'+divID).hide();                                     
+          }
+          else
+          {
+            console.log('Up to down');                
+            $j('#'+buttonID).html('<span id='+spanID+' class="glyphicon glyphicon-chevron-down "></span>');    
+            $j('#'+divID).show();                   
+            console.log('Button html is ' + $j('#'+buttonID).html());                                     
+          }             
+        }
+
+      </script>
+    </apex:page>
