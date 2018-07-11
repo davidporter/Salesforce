@@ -1,0 +1,563 @@
+global with sharing class KSU_SubscriptionCenterController
+{
+    
+    public static KSU_SubscriptionCenterController controller;
+    private static final String UNSUB = 'Unsubscribed';
+    private static final String SUB = 'Subscribed';
+    private static final String NA = 'No Preference';
+    private Id passedSubscriptionId;
+    private String passedContactId;
+    private String passedMID;
+    private Map<String,Integer> tabIndexMap = new Map<String,Integer>();
+
+
+    private map <String, Marketing_Cloud_Subscriber__c> allSubscribers = new map <String, Marketing_Cloud_Subscriber__c>();
+
+    
+    public Boolean successPage { get; set; }
+    
+    public Double tabIndex {get; set;}   
+    public Map<String, List<SubscriberWrapper>> subscribedCommunications {get; set;}
+    public Map<String, List<SubscriberWrapper>> requiredCommunications {get; set;}    
+    public Map<String, List<SubscriberWrapper>> allCommunications {get; set;} 
+    public Map<String, List<SubscriberWrapper>> subscriptionTabMap {get; set;}        
+    
+    public Contact theContact { get; set; }
+    public Marketing_Cloud_Subscription__c theSubscription { get; set; }
+
+    public Set<String> departments { get; set; }
+    public Set<String> subscribedDepartments { get; set; }
+    public Set<String> requiredDepartments { get; set; }   
+    
+    public Set<String> allDepartments { get; set; }  
+    
+    public Map<String,Set<String>> allCommunicationCategoriesMap {get; set;}     
+    public Map<String,List<SubscriberWrapper>> allCommunicationWrappersMap {get; set;}      
+         
+    public String successString { get; set; }
+
+    public List <Marketing_Cloud_Subscriber__c> subscribedForContact { get; set; }
+
+    public KSU_SubscriptionCenterController()
+    {
+        successPage = false;
+
+
+        tabIndex=0;
+        passedSubscriptionId = ApexPages.currentPage().getParameters().get('subscriptionId');
+        passedContactId = ApexPages.currentPage().getParameters().get('contactId');
+        passedMID = ApexPages.currentPage().getParameters().get('MID');        
+        
+        subscribedCommunications = new Map<String, List<SubscriberWrapper>>();
+        requiredCommunications = new Map<String, List<SubscriberWrapper>>(); 
+        allCommunications = new Map<String, List<SubscriberWrapper>>();     
+        subscriptionTabMap = new Map<String, List<SubscriberWrapper>>();   
+
+        subscribedForContact = [ 
+        select Marketing_Cloud_Subscription_Name__c 
+        from Marketing_Cloud_Subscriber__c 
+        where Contact__c =: passedContactId 
+        and Status__c =: SUB];
+        
+        // Initialize the tab keys as bug in Visualforce when referencing index which doesn't exist
+            allCommunicationCategoriesMap = new Map<String,Set<String>>();     
+                allCommunicationCategoriesMap.put('CCPD',new Set<String>());  
+                allCommunicationCategoriesMap.put('WKSU',new Set<String>());  
+                allCommunicationCategoriesMap.put('Alumni Friends',new Set<String>());  
+                allCommunicationCategoriesMap.put('Students',new Set<String>());  
+                allCommunicationCategoriesMap.put('Athletics',new Set<String>());
+                allCommunicationCategoriesMap.put('Recruiting',new Set<String>());  
+                allCommunicationCategoriesMap.put('Faculty Staff',new Set<String>());              
+                
+                tabIndexMap.put('WKSU',0);         
+                tabIndexMap.put('Alumni Friends',1);            
+                tabIndexMap.put('Faculty Staff',2);
+                tabIndexMap.put('Students',3);          
+                tabIndexMap.put('Athletics',4);         
+                tabIndexMap.put('CCPD',5);              
+                tabIndexMap.put('Recruiting',6);                                                                                                                                                                                                                    
+            
+            allCommunicationWrappersMap = new Map<String,List<SubscriberWrapper>>();  
+               
+        
+        
+        if (passedContactId != null)
+        {
+            try
+            {
+                theContact = [
+                    SELECT Name, FirstName, LastName, Email
+                    FROM Contact
+                    WHERE Id = :passedContactId
+                ];
+
+            }
+            catch (QueryException e)
+            {
+                ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.FATAL,
+                    'Error: Could not find associated Contact ' + e.getMessage()));
+                return;
+            }
+        }
+
+        if (passedSubscriptionId != null)
+        {
+            try
+            {
+                theSubscription = [
+                    SELECT Id, Name,
+                        Business_Unit__c,
+                        Description__c,
+                        MID__c,
+                        Required_Subscription__c,
+                        Show_on_Subscription_Center__c,
+                        Subscription_Name__c                                      
+                    FROM Marketing_Cloud_Subscription__c
+                    WHERE Id = :passedSubscriptionId
+                ];
+            }
+            catch (QueryException e)
+            {
+                ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.FATAL,
+                    'Error: Could not find associated Subscription ' + e.getMessage()));
+                return;
+            }
+        }
+        
+        if (passedMID != null)
+        {        
+                List<et4ae5__Business_Unit__c> midBusinessUnits = [select Name,Default_Tab__c from et4ae5__Business_Unit__c where et4ae5__Business_Unit_ID2__c = :passedMID];
+                
+                        if (midBusinessUnits.size() > 0)
+                        {
+                                tabIndex = tabIndexMap.get(midBusinessUnits[0].Default_Tab__c);
+                        }    
+                                
+
+        }
+        
+        if (theContact == null && theSubscription == null)
+        {
+            ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.FATAL,
+                'Error: No Contact or Subscription found.'));
+            return;
+        }       
+         
+        System.debug('The Contact ' + theContact);
+        System.debug('Subscription ID ' + passedSubscriptionId);
+        
+        if (theContact != null && passedSubscriptionId == null)
+        {
+            
+              for (Marketing_Cloud_Subscriber__c subscriber : [
+                SELECT Id, Name, Contact__c, Last_Subscribed_Date__c, Subscription__r.Subscription_Name__c,
+                    Last_Unsubscribed_Date__c, Subscription__c, MID__c, Status__c,Subscription__r.Id,
+                    Subscription__r.Business_Unit_Name__c, Subscription__r.Required_Subscription__c,
+                    Subscription__r.Show_on_Subscription_Center__c, Subscription__r.Description__c, Subscription__r.Category__c
+                FROM Marketing_Cloud_Subscriber__c
+                WHERE Contact__c = :theContact.Id 
+                    AND Subscription__r.Show_on_Subscription_Center__c = true
+                ORDER BY Subscription__r.Business_Unit_Name__c
+            ]) 
+            {
+
+                allSubscribers.put( passedContactId+subscriber.Subscription__r.Id  ,subscriber);
+                System.debug('In Loop ' + subscriber);
+                if (!allCommunications.containsKey(subscriber.Subscription__r.Business_Unit_Name__c))
+                    allCommunications.put(subscriber.Subscription__r.Business_Unit_Name__c,new List<SubscriberWrapper>());
+
+                        SubscriberWrapper aWrapper = new SubscriberWrapper(subscriber);
+                allCommunications.get(subscriber.Subscription__r.Business_Unit_Name__c).add(aWrapper);
+                
+                if (aWrapper.required)
+                {
+                    System.debug('Wrapper is Required ' + aWrapper);
+                    if (!requiredCommunications.containsKey(subscriber.Subscription__r.Business_Unit_Name__c))
+                        requiredCommunications.put(subscriber.Subscription__r.Business_Unit_Name__c,new List<SubscriberWrapper>());
+                    requiredCommunications.get(subscriber.Subscription__r.Business_Unit_Name__c).add(aWrapper);                 
+                }
+                else
+                {
+                    if (aWrapper.subscriberStatus == SUB)
+                    {
+                        if (!subscribedCommunications.containsKey(subscriber.Subscription__r.Business_Unit_Name__c))
+                            subscribedCommunications.put(subscriber.Subscription__r.Business_Unit_Name__c,new List<SubscriberWrapper>());
+                        subscribedCommunications.get(subscriber.Subscription__r.Business_Unit_Name__c).add(aWrapper);       
+                        System.debug('Subscribed Communications ' + subscribedCommunications);                                          
+                            
+                    }                                       
+                }
+            }
+            
+            populateSubscriptionTabMap();            
+            subscribedDepartments = subscribedCommunications.keySet();
+            requiredDepartments = requiredCommunications.keySet();  
+            allDepartments = subscriptionTabMap.keySet();
+            System.debug('All Departments ' + allDepartments);          
+        }
+        KSU_SubscriptionCenterController.controller = this;
+        System.debug('This is ' + KSU_SubscriptionCenterController.controller);
+    }
+    
+    public void populateSubscriptionTabMap()
+    {
+
+            
+              for (Marketing_Cloud_Subscription__c subscription : [
+                SELECT Id, Name, Business_Unit__c, Description__c, 
+                    MID__c, Show_on_Subscription_Center__c, Business_Unit_Name__c,
+                    Subscription_Name__c,  Business_Unit__r.Name, Display_Tab__c, Category__c
+                FROM Marketing_Cloud_Subscription__c
+                WHERE Show_on_Subscription_Center__c = true and Display_Tab__c != null
+                ORDER BY Business_Unit__c
+            ]) 
+            {
+                
+                if (!subscriptionTabMap.containsKey(subscription.Display_Tab__c))
+                    subscriptionTabMap.put(subscription.Display_Tab__c,new List<SubscriberWrapper>());
+
+                                System.debug('All subscriber is ' + allSubscribers);
+                SubscriberWrapper aWrapper = new SubscriberWrapper(subscription,allSubscribers.get(passedContactID+subscription.Id));
+                if (!aWrapper.required)
+                {
+                        subscriptionTabMap.get(subscription.Display_Tab__c).add(aWrapper);
+                        
+                        if (!allCommunicationCategoriesMap.containsKey(subscription.Display_Tab__c))
+                                allCommunicationCategoriesMap.put(subscription.Display_Tab__c,new Set<String>());
+                        allCommunicationCategoriesMap.get(subscription.Display_Tab__c).add(subscription.Category__c);
+                        
+                        if (!allCommunicationWrappersMap.containsKey(subscription.Display_Tab__c+subscription.Category__c))
+                                allCommunicationWrappersMap.put(subscription.Display_Tab__c+subscription.Category__c,new List<SubscriberWrapper>());
+                        allCommunicationWrappersMap.get(subscription.Display_Tab__c+subscription.Category__c).add(aWrapper);
+                }                
+                
+                
+                                
+            }
+                
+    }
+        
+public void unsubFromSingleSubscription()
+    {
+                Marketing_Cloud_Subscriber__c subscriberToUnsub;
+                try
+                {
+                subscriberToUnsub = [
+                    SELECT Name, Status__c
+                    FROM Marketing_Cloud_Subscriber__c
+                    WHERE Contact__c = :passedContactId
+                    AND Subscription__c = :passedSubscriptionId limit 1
+                ];
+                }
+                catch (Exception ex)
+                {
+                        System.debug('One Click exception ' + ex);
+                }
+
+        // If Subscriber exists, unsub. If not, create a new one with status unsub
+        if (subscriberToUnsub != null)
+        {
+                subscriberToUnsub.Status__c = UNSUB;
+
+        }
+        else
+        {
+            subscriberToUnsub = new Marketing_Cloud_Subscriber__c(
+                Contact__c = passedContactId,
+                Subscription__c = passedSubscriptionId,
+                Status__c = UNSUB
+            );
+
+
+        }
+
+
+            try
+            {
+                upsert subscriberToUnsub;
+                successPage = true;
+                successString = 'You have been successfully unsubscribed from ' + theSubscription.Subscription_Name__c + '.';
+            }
+            catch (DmlException e)
+            {
+                ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.FATAL,
+                    'Error: Could not update subscription ' + e.getMessage()));
+                return;
+            }
+
+    }
+    
+    // Return set of all of the subscribed communications which were turned off
+    private Set<Id> allSubscribedTurnedOff()
+    {
+        Set<Id> subscribedTurnedOff = new Set<Id>();
+        for (List<SubscriberWrapper> aWrapperList : subscribedCommunications.values())
+        {
+                for (SubscriberWrapper aWrapper : aWrapperList)
+                {
+                        if (!aWrapper.checked)
+                        {
+                                subscribedTurnedOff.add(aWrapper.subscriber.Id);
+                        }
+                }
+        }
+        return subscribedTurnedOff;
+    }
+    
+    @RemoteAction
+    global static String updateSubscriptionsGlobal(String contactId, String subscriptionId,String checked,String subscriberId, String divName ) 
+    {  
+                                
+    String status;
+
+    Marketing_Cloud_Subscriber__c aSubscriber;        
+        
+    if (checked == 'false' || false)
+    {
+        status = UNSUB;
+    }
+    else
+    {
+        status = SUB;      
+    }        
+      
+    if (String.isNotBlank(subscriberId))
+    {
+        aSubscriber = [select Id, Status__c from Marketing_Cloud_Subscriber__c where Id = :subscriberId];
+        aSubscriber.Status__c = status;
+        update aSubscriber;
+    }  
+    else
+    {
+        // Create Record
+        aSubscriber = new Marketing_Cloud_Subscriber__c();
+        aSubscriber.Contact__c = contactId;
+        aSubscriber.Subscription__c = subscriptionId;
+        aSubscriber.Status__c = status;
+        insert aSubscriber;
+    }
+
+    return divName;
+      
+    }
+
+
+
+      @RemoteAction
+      global static String updateFLASHperksSubscriptionsGlobal(String contactId, String subscriptionId,String checked,String subscriberId, String divName ) 
+      {  
+        String status;
+        String qStatus;
+        if (checked == 'false')
+        {
+            status = UNSUB;
+            qStatus = SUB;
+        }
+        else
+        {
+            status = SUB;
+            qStatus = UNSUB;      
+        }  
+        List<Marketing_Cloud_Subscriber__c> subscribersToUnsub = new List<Marketing_Cloud_Subscriber__c>();
+        
+              for (Marketing_Cloud_Subscriber__c subscriber : [
+                SELECT Id, Status__c
+                FROM Marketing_Cloud_Subscriber__c
+                WHERE Contact__c = :contactId
+                    AND Marketing_Cloud_Subscription_Name__c LIKE '%FLASHperks%' 
+                    AND Subscription__r.Show_on_Subscription_Center__c = true
+                    AND Status__c = :qStatus
+                ORDER BY Subscription__r.Business_Unit_Name__c
+            ]) 
+            {
+                subscriber.Status__c = status;
+                subscribersToUnsub.add(subscriber);
+            }        
+            update subscribersToUnsub;
+            return divName;
+      }
+
+    
+    // Update all of the subscptionc based on the wrappers
+        public void updateSubscriptions()
+    {
+      System.debug('We are in instance updatesubscriptions');
+        List<Marketing_Cloud_Subscriber__c> subscribersToUpdate = new List<Marketing_Cloud_Subscriber__c>();
+        Map<String,Marketing_Cloud_Subscriber__c> subscribersToUpdateMap = new Map<String,Marketing_Cloud_Subscriber__c>();
+        for (String key : allCommunicationWrappersMap.keySet())
+        {
+            for (SubscriberWrapper sw: allCommunicationWrappersMap.get(key))
+            {
+                Marketing_Cloud_Subscriber__c aSubscriber;
+                if (sw.subscriberStatus != NA)
+                {
+                        if (sw.subscriber == null)
+                        {
+                                aSubscriber = new Marketing_Cloud_Subscriber__c();
+                                aSubscriber.Contact__c = passedContactID;
+                                aSubscriber.Subscription__c = sw.subscription.Id;
+                                sw.subscriber = aSubscriber;
+                                System.debug('Adding subscriber ' + aSubscriber);
+                        }
+                        else
+                        {
+                                subscribersToUpdateMap.put(sw.subscriber.Id,sw.subscriber);
+                        }
+                        
+                    aSubscriber = sw.subscriber;
+                    
+                    if (allSubscribedTurnedOff().contains(aSubscriber.Id))
+                        aSubscriber.Status__c = UNSUB;
+                    else        
+                        aSubscriber.Status__c = sw.subscriberStatus;
+                    subscribersToUpdate.add(aSubscriber);
+                }
+            }
+        }
+        
+        // Since subscribers are potentionally 2 places, override required subscribers in case user turned off at top
+        //allSubscribers.put( passedContactId+subscriber.Subscription__r.Id  ,subscriber);
+
+        try
+        {
+            System.debug('Subscribers to Upsert ' + subscribersToUpdate);
+            upsert subscribersToUpdate;
+           // successPage = true;
+            successString = 'Communication subscriptions updated successfully.';
+        }
+        catch (DmlException e)
+        {
+            ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.FATAL,
+                'Error: Could not update subscriptions ' + e.getMessage()));
+            return;
+        }
+    }
+    
+    public void unsubFromAllComms()
+    {
+        List<Marketing_Cloud_Subscriber__c> subscribersToUnsub = new List<Marketing_Cloud_Subscriber__c>();
+        theContact.HasOptedOutOfEmail = true;
+        
+              for (Marketing_Cloud_Subscriber__c subscriber : [
+                SELECT Id, Status__c
+                FROM Marketing_Cloud_Subscriber__c
+                WHERE Contact__c = :theContact.Id 
+                    AND Subscription__r.Show_on_Subscription_Center__c = true
+                    AND Status__c = :SUB
+                ORDER BY Subscription__r.Business_Unit_Name__c
+            ]) 
+            {
+                subscriber.Status__c=UNSUB;
+                subscribersToUnsub.add(subscriber);
+            }        
+        
+        try
+        {
+            update theContact;
+            update subscribersToUnsub;
+            successPage = true;
+            successString = 'You have been successfully unsubscribed from all KSU communications.';
+        }
+        catch (DmlException e)
+        {
+            ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.FATAL,
+                'Error: Could not update subscriptions ' + e.getMessage()));
+            return;
+        }
+    }
+    
+    public Class SubscriberWrapper
+    {
+        public Marketing_Cloud_Subscriber__c subscriber { get; set; }
+        public String subscriberStatus { get; set; }
+        public Boolean required {get; set;}
+        public Integer multiCheckVal { get; set; } // 1 is subbed, 2 is unsubbed, 0 is no preference
+        public String description { get; set; }       
+        public Marketing_Cloud_Subscription__c subscription {get; set;}
+        public String details {get; set;}  
+        public Boolean checked {get; set;}      
+
+        public SubscriberWrapper(Marketing_Cloud_Subscriber__c aSubscriber)
+        {
+
+            subscriber = aSubscriber;
+            subscriberStatus = aSubscriber.Status__c;
+            required = aSubscriber.Subscription__r.Required_Subscription__c;
+            description = aSubscriber.Subscription__r.Subscription_Name__c;    
+            details = aSubscriber.Subscription__r.Description__c;
+            subscription = aSubscriber.Subscription__r;
+            checked=false;
+            
+            if (aSubscriber.Status__c == SUB)
+            {
+                checked=true;
+            }
+            else
+            {
+                checked=false;
+            }
+                    
+
+       //     if (aSubscriber.Status__c == SUB) {
+       //         multiCheckVal = 1;
+       //         checked=true;
+       //     }
+       //     else if (aSubscriber.Status__c == NA) {
+       //         multiCheckVal = 0;
+       //     }
+       //     else if (aSubscriber.Status__c == UNSUB) {
+        //        multiCheckVal = 2;
+        //    }
+            System.debug('Building Wrapper ' + subscriber);            
+        }
+        
+        public SubscriberWrapper(Marketing_Cloud_Subscription__c aSubscription, Marketing_Cloud_Subscriber__c aSubscriber)
+        {
+            System.debug('Building Wrapper ' + aSubscription);   
+                
+                subscription = aSubscription;
+                if (aSubscriber != null)
+                {
+                    System.debug('Subscriber has value ' + aSubscriber);
+                    subscriber = aSubscriber;
+                    subscriberStatus = aSubscriber.Status__c;
+                    required = aSubscriber.Subscription__r.Required_Subscription__c;
+                    description = aSubscriber.Subscription__r.Subscription_Name__c;    
+                    details = aSubscription.Description__c;       
+                    
+                    if (aSubscriber.Status__c == SUB)
+                    {
+                        checked=true;
+                    }
+                    else
+                    {
+                        checked=false;
+                    }                          
+                            
+                      //      if (aSubscriber.Status__c == SUB) {
+                      //          multiCheckVal = 1;
+                      //      }
+                      //      else if (aSubscriber.Status__c == NA) {
+                      //          multiCheckVal = 0;
+                      //      }
+                      //      else if (aSubscriber.Status__c == UNSUB) { 
+                       //         multiCheckVal = 2;
+                      //  }
+       
+                }
+                else  // if aSubscriber = null
+                {
+                    subscription = aSubscription;
+                    required=false;
+                    description = aSubscription.Subscription_Name__c;       
+                    
+                    multiCheckVal = 0;    
+                    subscriberStatus = UNSUB; 
+
+                    checked = false;          
+                    
+                    System.debug('Building Wrapper ' + subscriber);                       
+        }        
+    } 
+    }   
+}
